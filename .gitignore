@@ -1,5 +1,7 @@
 .env
 test.py
-rework_data.py
+rework_data
 __pycache__
 main2.py
+raw_dict.csv
+main.log

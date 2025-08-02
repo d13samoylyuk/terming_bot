@@ -3,10 +3,12 @@ import psycopg2
 import sqlalchemy as sql
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 
+from modules.logger import logger
 from modules.files import read_csv_file
 
 
 DICT_PATH = 'data/rus_eng_dict.csv'
+LOG_PATH = 'data/main.log'
 
 
 class English_DB:
@@ -60,17 +62,20 @@ class English_DB:
             stop_user_words).filter(
                 stop_user_words.user_ID == user_id).all()        
 
+    @logger(LOG_PATH)
     def add_user(self, telegram_id):
         '''Adds new user to database by telegram id'''
         self._session.add(users(telegram_ID=telegram_id))
         self._session.commit()
     
+    @logger(LOG_PATH)
     def delete_user(self, telegram_id):
         '''Deletes user from database by telegram id'''
         self._session.query(users).filter(
             users.telegram_ID == telegram_id).delete()
         self._session.commit()
 
+    @logger(LOG_PATH)
     def add_extra_word(self, telegram_id, word, translate):
         '''Adds new word to extra dictionary in database
         if it's not existing in main dictionary. In case
@@ -96,7 +101,8 @@ class English_DB:
         except sql.exc.IntegrityError:
             self._session.rollback()
             return 'UserToWordExists'
-        
+    
+    @logger(LOG_PATH)
     def add_stop_word(self, telegram_id, word):
         '''Adds word to stop words list for user.
         If the word is in extra dictionary, just the user-word
