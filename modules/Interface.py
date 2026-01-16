@@ -1,10 +1,14 @@
 import os
+import platform
 from telebot import types
 
+from config.settings import PATHS
 from modules.files import read_json_file
 
 
-ERRORS_TERMS = 'data/errors_dict.json'
+MACHINE_PLATFORM = {
+    "OS": platform.system(),
+}
 
 
 class Interface:
@@ -12,6 +16,7 @@ class Interface:
         self.BEGIN = '/learn'
         self.ADD_WORD = '/add word'
         self.DELETE_WORD = '/remove'
+        self.SWITCH_MODE = '/switch mode'
         self.NEXT = '/next'
         self.END = '/end'
 
@@ -19,14 +24,16 @@ class Interface:
                            self.END,
                            self.NEXT]
 
-        self.greeting = "Hey there! Let\'s learn English :D"
+        self.greeting = "Hey there, let\'s learn English"
 
     def menu(self):
-        markup = types.ReplyKeyboardMarkup(row_width=1)
+        markup = types.ReplyKeyboardMarkup(row_width=2)
 
         return markup.add(*[types.KeyboardButton(word) for word in 
-                [self.BEGIN,
-                 self.ADD_WORD]])
+                [self.ADD_WORD,
+                 self.SWITCH_MODE,
+                 self.BEGIN,
+                 ]])
 
     def learn(self, words_list=None, remove_commands=None):
         '''Return a keyboard with words if added and default command buttons
@@ -49,9 +56,12 @@ class Interface:
         return types.ReplyKeyboardRemove()
     
     def error_decode(self, error_code):
-        error_dict = read_json_file(ERRORS_TERMS)
+        error_dict = read_json_file(PATHS.errors_terms)
         return error_dict[error_code]
 
 
 def clear_terminal():
-    os.system('cls')
+    if MACHINE_PLATFORM['OS'] == 'Linux':
+        os.system('clear')
+    elif MACHINE_PLATFORM['OS'] == 'Windows':
+        os.system('cls')

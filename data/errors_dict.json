@@ -1,7 +1,8 @@
 {
-    "NewLineUsed": "Слово не было добавлено, т.к. в нем использовался перевод на новую строку",
-    "InvalidSplitCondition": "Однин слэш — идеально.\nНекорректное использование разделителя, слово не было добавлено",
-    "EmptyTerm": "Пусто здесь, пусто в базе данных.\nСлово не было добавлено, т.к. оно и/или перевод отсутствуют",
-    "WordExists": "Такое слово уже есть в основном словаре",
-    "UserToWordExists": "Вы уже добавляли это слово в свою подборку"
+    "NewLineUsed": "Please don't press Enter. New line symbol not allowed here",
+    "InvalidSplitCondition": "Incrorect use of splitter, the word wasn't added",
+    "EmptyTerm": "Incorrect or lack of info, word wasn't added",
+    "WordExists": "Such word already exists in main dictionary\n\nAppend an asterisk \"*\" before the term to add such one \nExample:\n\"ability\" -> \"*ability\"",
+    "UserToWordExists": "Such word already exists in your dictionary",
+    "NotEnoughExtraWords": "There's not enough words in your dictionary to learn.\nUse \"/add word\" to add more words"
 }

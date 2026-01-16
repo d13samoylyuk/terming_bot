@@ -3,12 +3,9 @@ import psycopg2
 import sqlalchemy as sql
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 
+from config.settings import PATHS, CONFIGS
 from modules.logger import logger
 from modules.files import read_csv_file
-
-
-DICT_PATH = 'data/rus_eng_dict.csv'
-LOG_PATH = 'data/main.log'
 
 
 class English_DB:
@@ -25,24 +22,40 @@ class English_DB:
             self._integrity_check()
     
     def get_user_words(self, telegram_id):
+        switched_mode = CONFIGS().switched_mode
+
         user_id = self.get_user_id(telegram_id)
 
-        main_words = self.get_main_words()
+        # Considering user's current mode (full or only user's words)
+        if user_id in switched_mode:
+            main_words = []
+        else:
+            main_words = self.get_main_words()
         stop_words = self.get_stop_words(user_id)
-        extra_words = self.get_extra_words(user_id)        
+
+        # Check for doubling user's words: if mode is "full",
+        # remove words with asterisk
+        extra_words = self.get_extra_words(user_id)
+        if user_id not in switched_mode:
+            extra_words = [word for word in extra_words
+                           if not word.rus_word.startswith("*")]
+        # else:
+        #     extra_words = [(word.rus_word[1:]) for word in extra_words
+        #                    if word.rus_word.startswith("*")]
         
-        main_words = [(line.rus_word, line.eng_translation)
+        main_words = [(line.rus_word.replace("*", ""), line.eng_translation)
                       for line in main_words]
         if extra_words:
             main_words.extend([(line.rus_word, line.eng_translation)
                                for line in extra_words])
         if stop_words:
-            main_words = set(main_words) - set([(line.rus_word, line.eng_translation)
-                                                 for line in stop_words])
+            main_words = set(main_words) - set([
+                (line.rus_word, line.eng_translation)
+                for line in stop_words])
         
         return tuple(main_words)
 
-    def get_main_words(self):
+    def get_main_words(self) -> list:
         '''Returns all words in main dictionary.
         Added by users words not included'''
         return self._session.query(main_dictionary).all()
@@ -62,20 +75,20 @@ class English_DB:
             stop_user_words).filter(
                 stop_user_words.user_ID == user_id).all()        
 
-    @logger(LOG_PATH)
+    @logger(PATHS.log)
     def add_user(self, telegram_id):
         '''Adds new user to database by telegram id'''
         self._session.add(users(telegram_ID=telegram_id))
         self._session.commit()
     
-    @logger(LOG_PATH)
+    @logger(PATHS.log)
     def delete_user(self, telegram_id):
         '''Deletes user from database by telegram id'''
         self._session.query(users).filter(
             users.telegram_ID == telegram_id).delete()
         self._session.commit()
 
-    @logger(LOG_PATH)
+    @logger(PATHS.log)
     def add_extra_word(self, telegram_id, word, translate):
         '''Adds new word to extra dictionary in database
         if it's not existing in main dictionary. In case
@@ -102,8 +115,8 @@ class English_DB:
             self._session.rollback()
             return 'UserToWordExists'
     
-    @logger(LOG_PATH)
-    def add_stop_word(self, telegram_id, word):
+    @logger(PATHS.log)
+    def add_stop_word(self, telegram_id: str, word):
         '''Adds word to stop words list for user.
         If the word is in extra dictionary, just the user-word
         relation will be removed'''
@@ -162,7 +175,7 @@ class English_DB:
 
     def _fill_db(self):
         if self._is_table_empty(main_dictionary):
-            dictionary = read_csv_file(DICT_PATH)
+            dictionary = read_csv_file(PATHS.dict)
             for line in dictionary:
                 self._session.add(
                     main_dictionary(rus_word=line['word'],

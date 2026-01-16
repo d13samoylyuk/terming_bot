@@ -33,3 +33,16 @@ def read_csv_file(file_path):
     with open(file_path, encoding="utf-8") as csv_file:
         reader = csv.DictReader(csv_file, delimiter=',')
         return list(reader)    
+
+
+def create_folder(path, ingnor_FileExistsError=False):
+    try:
+        os.mkdir(path)
+    except FileExistsError as error:
+        if not ingnor_FileExistsError:
+            raise
+
+
+def write_file(path: str, content: str, method: str = 'w') -> None:
+    with open(path, method) as file:
+        file.write(content)

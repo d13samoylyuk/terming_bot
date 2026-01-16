@@ -4,17 +4,15 @@ from time import sleep
 
 from dotenv import load_dotenv
 
+from config.settings import PATHS
 from modules.English_DB import English_DB
 from modules.Interface import clear_terminal
 from modules.Telegram import test_token
 from modules.files import create_env_file
 
 
-ENV_PATH = "data/.env"
-
-
 def get_info():
-    load_dotenv(dotenv_path=ENV_PATH)
+    load_dotenv(dotenv_path=PATHS.env)
     token_bot = os.getenv('TOKEN')
     db_username = os.getenv('DB_USERNAME')
     db_password = os.getenv('DB_PASSWORD')
@@ -68,7 +66,7 @@ def save_user_data(token, username, password):
 TOKEN={token}
 DB_USERNAME={username}
 DB_PASSWORD={password}'''
-    create_env_file(ENV_PATH, template)
+    create_env_file(PATHS.env, template)
 
 
 def get_input(prefix='\n > ', password=False,

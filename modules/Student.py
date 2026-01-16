@@ -1,17 +1,25 @@
 from random import shuffle
 
+from config.settings import CONFIGS
+
+
+WORDS_PER_SET = 4
+
 
 class Student:
     def __init__(self, user_telegram_id, database):
         self._telegram_id = user_telegram_id
         self._database = database
+        self._user_id = database.get_user_id(user_telegram_id)
 
         self._state = None
         self._current_target = None
         self._current_set = None
         self._current_words = None
 
-    def new_session(self, words_amnt=4):
+        self.learning_mode = CONFIGS().current_mode(self._user_id)
+
+    def new_session(self, words_amnt=WORDS_PER_SET):
         '''Creates new session for user with a shuffled banks of words
         and returns current words set (as english options) and 
         target word (as russian, english)'''
@@ -22,7 +30,7 @@ class Student:
 
         return self.next_set(words_amnt=words_amnt)
     
-    def next_set(self, words_amnt=4):
+    def next_set(self, words_amnt=WORDS_PER_SET):
         '''Returns current words set (as english options) and 
         target word (as russian, english)'''
         self._current_set = self._current_words[:words_amnt]
@@ -51,15 +59,22 @@ class Student:
         splitted_term = raw_term.split(splitter)
         if len(splitted_term) != 2:
             return 'InvalidSplitCondition'
-        rus_word, translation = [part.strip() for part in splitted_term]
+        term, definition = [part.strip() for part in splitted_term]
 
-        if len(rus_word) == 0 or len(translation) == 0:
+        if len(term) == 0 or len(definition) == 0:
             return 'EmptyTerm'
         
         # other error feedback are comes from
         # database control module
         return self._database.add_extra_word(
-            self._telegram_id, rus_word, translation)
+            self._telegram_id, term, definition)
+
+    def switch_mode(self):
+        if len(self._database.get_extra_words(self._user_id)) <= WORDS_PER_SET:
+            return 'NotEnoughExtraWords'
+        else:
+            self.learning_mode = CONFIGS().switch_user_mode(self._user_id)
+            return 'Success'
     
     def end_session(self):
         self._state = False
