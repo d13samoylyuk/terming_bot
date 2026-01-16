@@ -10,7 +10,7 @@ from modules.files import read_csv_file
 
 class English_DB:
     def __init__(self, db_user=None, db_password=None):
-        self._db_name = 'eng_rus_bot_db'
+        self._db_name = 'telegram_terming_bot_db'
         self._DSN = 'postgresql://{}:{}@localhost:5432/{}'.format(
             db_user, db_password, self._db_name)
 
