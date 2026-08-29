@@ -141,7 +141,7 @@ class English_DB:
         if user_data:
             return user_data[0].user_ID
         else:
-            return 'UserDoesNotExist'
+            raise(ValueError(f"User with telegram_id {telegram_id} not found"))
     
     def find_object(self, table_name, expression):
         return self._session.query(table_name).filter(expression).all()
